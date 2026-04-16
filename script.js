@@ -8,11 +8,13 @@ var startBtn = document.getElementById("start-btn");
 var restartBtn = document.getElementById("restart-btn");
 var navodilaBtn = document.getElementById("navodila-btn");
 var vizitkaBtn = document.getElementById("vizitka-btn");
-var infoPanel = document.getElementById("info-panel");
-var infoTitle = document.getElementById("info-title");
-var infoText = document.getElementById("info-text");
+var popup = document.getElementById("popup");
+var popupTitle = document.getElementById("popup-title");
+var popupText = document.getElementById("popup-text");
+var popupClose = document.getElementById("popup-close");
 var messageBox = document.getElementById("message-box");
-var activePanel = "";
+var activePopup = "";
+var pausedForPopup = false;
 
 var WIDTH = canvas.width;
 var HEIGHT = canvas.height;
@@ -109,6 +111,65 @@ function showMessage(text) {
 
 function hideMessage() {
     messageBox.classList.add("hidden");
+}
+
+function isPopupOpen() {
+    return !popup.classList.contains("hidden");
+}
+
+function pauseGameForPopup() {
+    if (!running) {
+        return;
+    }
+
+    running = false;
+    pausedForPopup = true;
+    rightDown = false;
+    leftDown = false;
+
+    if (intervalId !== null) {
+        clearInterval(intervalId);
+        intervalId = null;
+    }
+}
+
+function resumeGameAfterPopup() {
+    if (!pausedForPopup || finished) {
+        pausedForPopup = false;
+        return;
+    }
+
+    pausedForPopup = false;
+    running = true;
+
+    if (intervalId !== null) {
+        clearInterval(intervalId);
+    }
+
+    intervalId = setInterval(draw, 10);
+}
+
+function closePopup(resumeGame) {
+    popup.classList.add("hidden");
+    activePopup = "";
+
+    if (resumeGame === false) {
+        pausedForPopup = false;
+        return;
+    }
+
+    resumeGameAfterPopup();
+}
+
+function showPopup(name, title, text) {
+    if (!isPopupOpen()) {
+        pauseGameForPopup();
+    }
+
+    popupTitle.textContent = title;
+    popupText.innerHTML = text;
+    popup.classList.remove("hidden");
+    activePopup = name;
 }
 
 function initPaddle() {
@@ -249,6 +310,7 @@ function checkBrickHit() {
 
             if (tocke === NROWS * NCOLS) {
                 stopGame("Zmagal si. Razbil si vse opeke.");
+                showVictoryPopup();
             }
         }
     }
@@ -322,40 +384,52 @@ function draw() {
 }
 
 function showNavodila() {
-    if (activePanel === "navodila" && !infoPanel.classList.contains("hidden")) {
-        infoPanel.classList.add("hidden");
-        activePanel = "";
+    if (activePopup === "navodila" && isPopupOpen()) {
+        closePopup();
         return;
     }
 
-    infoTitle.textContent = "Navodila";
-    infoText.innerHTML = "" +
-        "<p>1. Klikni Start, da se igra zacne.</p>" +
-        "<p>2. Ploscico premikas z levo in desno puscico.</p>" +
-        "<p>3. Razbij vse vesoljske opeke z zogico.</p>" +
-        "<p>4. Ce zogica pade mimo ploscice, izgubis zivljenje.</p>";
-    infoPanel.classList.remove("hidden");
-    activePanel = "navodila";
+    showPopup("navodila", "Navodila", "" +
+        "<p><strong>Cilj:</strong> razbij vse vesoljske opeke, preden izgubiš vsa življenja.</p>" +
+        "<p><strong>Start:</strong> klikni Start, da se igra zacne. Restart postavi igro nazaj na zacetek.</p>" +
+        "<p><strong>Premikanje:</strong> ploščico premikas z levo in desno puščico na tipkovnici.</p>" +
+        "<p><strong>Kako se igra:</strong> žogica se odbija od sten, ploščice in opek. Ko zadene opeko, dobis točko.</p>" +
+        "<p><strong>Življenja:</strong> če zogica pade mimo ploščice, izgubiš eno življenje. Na zacetku imas 3 življenja.</p>" +
+        "<p><strong>Namig:</strong> če žogico odbijes z robom ploščice, ji bolj spremenis smer.</p>");
 }
 
 function showVizitka() {
-    if (activePanel === "vizitka" && !infoPanel.classList.contains("hidden")) {
-        infoPanel.classList.add("hidden");
-        activePanel = "";
+    if (activePopup === "vizitka" && isPopupOpen()) {
+        closePopup();
         return;
     }
 
-    infoTitle.textContent = "Vizitka";
-    infoText.innerHTML = "" +
-        "<p>Ime: Matija Vidmar</p>" +
-        "<p>Razred: 4.RA</p>" +
-        "<p>Projekt: The Briks</p>" +
-        "<p>Tema: vesolje, zvezde in planeti.</p>";
-    infoPanel.classList.remove("hidden");
-    activePanel = "vizitka";
+    showPopup("vizitka", "Vizitka", "" +
+        "<p><strong>Ime:</strong> Matija Vidmar</p>" +
+        "<p><strong>Razred:</strong> 4.RA</p>" +
+        "<p><strong>Projekt:</strong> Brickverse</p>" +
+        "<p><strong>Tema:</strong> vesolje, zvezde in planeti.</p>");
+}
+
+function showVictoryPopup() {
+    showPopup("zmaga", "Zmaga!", "" +
+        "<p><strong>Bravo!</strong> Razbil si vse opeke in zmagal igro.</p>" +
+        "<p><strong>Tocke:</strong> " + tocke + "</p>" +
+        "<p><strong>Cas:</strong> " + timeText.textContent + "</p>" +
+        "<p><strong>Preostala zivljenja:</strong> " + zivljenja + "</p>" +
+        "<button id=\"popup-restart\" class=\"popup-action\">Igraj znova</button>");
 }
 
 function onKeyDown(evt) {
+    if (evt.key === "Escape" && isPopupOpen()) {
+        closePopup();
+        return;
+    }
+
+    if (isPopupOpen()) {
+        return;
+    }
+
     if (evt.key === "ArrowRight") {
         rightDown = true;
     } else if (evt.key === "ArrowLeft") {
@@ -387,11 +461,24 @@ restartBtn.addEventListener("click", function () {
     }
 
     resetGame();
-    infoPanel.classList.add("hidden");
-    activePanel = "";
+    closePopup(false);
 });
 
 navodilaBtn.addEventListener("click", showNavodila);
 vizitkaBtn.addEventListener("click", showVizitka);
+popupClose.addEventListener("click", function () {
+    closePopup();
+});
+
+popup.addEventListener("click", function (evt) {
+    if (evt.target === popup) {
+        closePopup();
+    }
+
+    if (evt.target.id === "popup-restart") {
+        closePopup(false);
+        resetGame();
+    }
+});
 
 resetGame();
