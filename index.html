@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Briks</title>
+    <title>Brickverse</title>
     <link rel="icon" type="image/svg+xml" href="space-icon.svg">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="page">
-        <h1>The Briks</h1>
-        <p class="subtitle">Vesoljska igra z zogico, ploscico in opekami.</p>
+        <h1>Brickverse</h1>
+        <p class="subtitle">Vesoljska igra z žogico, ploščico in opekami.</p>
 
         <div class="top-bar">
-            <div class="info-box">Tocke: <span id="tocke">0</span></div>
-            <div class="info-box">Cas: <span id="cas">00:00</span></div>
-            <div class="info-box">Zivljenja: <span id="zivljenja">3</span></div>
+            <div class="info-box">Točke: <span id="tocke">0</span></div>
+            <div class="info-box">Čas: <span id="cas">00:00</span></div>
+            <div class="info-box">Življenja: <span id="zivljenja">3</span></div>
         </div>
 
         <div class="button-row">
@@ -25,14 +25,17 @@
             <button id="vizitka-btn">Vizitka</button>
         </div>
 
-        <div id="info-panel" class="info-panel hidden">
-            <h2 id="info-title">Navodila</h2>
-            <div id="info-text"></div>
-        </div>
-
         <div class="game-frame">
             <canvas id="canvas" width="900" height="560"></canvas>
-            <div id="message-box" class="message-box">Klikni Start za zacetek igre.</div>
+            <div id="message-box" class="message-box">Klikni Start za začetek igre.</div>
+        </div>
+    </div>
+
+    <div id="popup" class="popup hidden" role="dialog" aria-modal="true" aria-labelledby="popup-title">
+        <div class="popup-card">
+            <button id="popup-close" class="popup-close" aria-label="Zapri popup">X</button>
+            <h2 id="popup-title">Navodila</h2>
+            <div id="popup-text"></div>
         </div>
     </div>
 
